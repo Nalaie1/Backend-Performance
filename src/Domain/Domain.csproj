@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
@@ -14,9 +13,4 @@
       <Folder Include="Entities\" />
       <Folder Include="Interfaces\" />
     </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="Properties\launchSettings.json" />
-    </ItemGroup>
-
 </Project>
