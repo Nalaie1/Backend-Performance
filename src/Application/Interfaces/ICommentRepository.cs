@@ -1,6 +1,8 @@
-﻿namespace Application.Interfaces;
+using Domain.Entities;
 
-public class ICommentRepository
+namespace Application.Interfaces;
+
+public interface ICommentRepository
 {
-    
+    Task<List<Comment>> GetAllCommentsForPost(Guid postId, bool includeReplies = true);
 }
