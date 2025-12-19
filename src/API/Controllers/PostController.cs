@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]  
+[ApiVersion("1.0")]  
 [Authorize]
 public class PostsController : ControllerBase
 {
@@ -24,13 +25,9 @@ public class PostsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAll([FromQuery] PostQueryParametersDto queryParameters)
     {
-        // Lấy danh sách bài viết có phân trang, lọc, sắp xếp
         var pagedResult = await _service.GetPagedAsync(queryParameters);
-
-        // Nếu không có kết quả
         if (pagedResult.Items == null || !pagedResult.Items.Any())
             return NoContent();
-
         return Ok(pagedResult);
     }
 
@@ -38,13 +35,10 @@ public class PostsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        // Lấy bài viết theo id (service sẽ dùng cache nếu có)
         var post = await _service.GetByIdAsync(id);
-
         if (post == null)
             return NotFound(new { Message = $"Post with id '{id}' not found." });
-
-        return Ok(post); // 200 + dữ liệu PostDto
+        return Ok(post);
     }
 
     // POST: api/posts
@@ -66,15 +60,11 @@ public class PostsController : ControllerBase
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
-        // Lấy userId và role từ JWT
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var isAdmin = User.IsInRole("Admin");
-
         var updated = await _service.UpdatePostAsync(id, userId, isAdmin, dto);
         if (updated == null)
             return NotFound();
-
         return Ok(updated);
     }
 
@@ -85,11 +75,9 @@ public class PostsController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var isAdmin = User.IsInRole("Admin");
-
         var deleted = await _service.DeletePostAsync(id, userId, isAdmin);
         if (!deleted)
             return NotFound();
-
         return NoContent();
     }
 }

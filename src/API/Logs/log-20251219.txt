@@ -1,0 +1,7 @@
+2025-12-19 23:11:52.517 +07:00 [INF] Starting API
+2025-12-19 23:11:54.797 +07:00 [INF] User profile is available. Using 'C:\Users\Admin\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-12-19 23:11:55.161 +07:00 [INF] Now listening on: http://localhost:5155
+2025-12-19 23:11:55.179 +07:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-12-19 23:11:55.183 +07:00 [INF] Hosting environment: Development
+2025-12-19 23:11:55.188 +07:00 [INF] Content root path: C:\Users\Admin\RiderProjects\Backend-Performance\src\API
+2025-12-19 23:14:40.752 +07:00 [INF] Application is shutting down...

@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Route("api/posts")]
     [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]  
+    [ApiVersion("1.0")]  
+    [Authorize]
     public class CommentsController : ControllerBase
     {
         private readonly ICommentService _service;

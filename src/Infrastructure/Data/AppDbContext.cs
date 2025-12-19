@@ -16,6 +16,13 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Post → User relationship
+        modelBuilder.Entity<Post>()
+            .HasOne(p => p.User)
+            .WithMany(u => u.Posts)
+            .HasForeignKey(p => p.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Comment → User: không cascade delete
         modelBuilder.Entity<Comment>()
             .HasOne(c => c.User)
@@ -30,11 +37,11 @@ public class AppDbContext : DbContext
             .HasForeignKey(c => c.PostId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Comment self-reference (Reply) → không cascade delete để tránh multiple cascade paths
+        // Comment self-reference (Reply)
         modelBuilder.Entity<Comment>()
             .HasOne(c => c.ParentComment)
             .WithMany(c => c.Replies)
             .HasForeignKey(c => c.ParentCommentId)
-            .OnDelete(DeleteBehavior.Restrict); // xử lý xóa reply bằng code
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
