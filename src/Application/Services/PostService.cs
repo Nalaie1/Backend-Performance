@@ -13,19 +13,13 @@ public class PostService : IPostService
 
     private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
 
-    public PostService(
-        IPostRepository repository,
-        IMapper mapper,
-        ICacheService cache)
+    public PostService(IPostRepository repository, IMapper mapper, ICacheService cache)
     {
         _repository = repository;
         _mapper = mapper;
         _cache = cache;
     }
 
-    /// <summary>
-    ///     Lấy bài viết theo Id (có cache)
-    /// </summary>
     public async Task<PostDto?> GetByIdAsync(Guid id)
     {
         var cacheKey = GetPostCacheKey(id);
@@ -39,18 +33,13 @@ public class PostService : IPostService
             return null;
 
         var dto = _mapper.Map<PostDto>(post);
-
         await _cache.SetAsync(cacheKey, dto, CacheTtl);
         return dto;
     }
 
-    /// <summary>
-    ///     Lấy danh sách bài viết có phân trang, lọc, sắp xếp
-    /// </summary>
     public async Task<PagedResultDto<PostDto>> GetPagedAsync(PostQueryParametersDto parameters)
     {
         var pagedPosts = await _repository.GetPagedAsync(parameters);
-
         var dtoItems = _mapper.Map<List<PostDto>>(pagedPosts.Items);
 
         return new PagedResultDto<PostDto>
@@ -62,48 +51,47 @@ public class PostService : IPostService
         };
     }
 
-    /// <summary>
-    ///     Tạo mới bài viết
-    /// </summary>
     public async Task<PostDto> CreatePostAsync(PostCreateDto dto)
     {
         var entity = _mapper.Map<Post>(dto);
         var created = await _repository.CreateAsync(entity);
-
-        // Có thể invalidate list cache sau này
         return _mapper.Map<PostDto>(created);
     }
 
-    /// <summary>
-    ///     Cập nhật bài viết
-    /// </summary>
-    public async Task<PostDto?> UpdatePostAsync(Guid id, PostUpdateDto dto)
+    public async Task<PostDto?> UpdatePostAsync(Guid postId, Guid userId, bool isAdmin, PostUpdateDto dto)
     {
-        var updatedEntity = await _repository.UpdateAsync(id, dto.Content);
-        if (updatedEntity == null)
+        var post = await _repository.GetByIdAsync(postId);
+        if (post == null)
             return null;
 
-        await _cache.RemoveAsync(GetPostCacheKey(id));
-        return _mapper.Map<PostDto>(updatedEntity);
+        if (!isAdmin && post.AuthorId != userId)
+            throw new UnauthorizedAccessException("u ain't allowed to update this post");
+
+        if (dto.Title != null)
+            post.Title = dto.Title;
+
+        if (dto.Content != null)
+            post.Content = dto.Content;
+
+        await _repository.UpdateAsync(post);
+        await _cache.RemoveAsync(GetPostCacheKey(postId));
+
+        return _mapper.Map<PostDto>(post);
     }
 
-    /// <summary>
-    ///     Xóa bài viết
-    /// </summary>
-    public async Task<bool> DeletePostAsync(Guid id)
+    public async Task<bool> DeletePostAsync(Guid postId, Guid userId, bool isAdmin)
     {
-        var result = await _repository.DeleteAsync(id);
+        var post = await _repository.GetByIdAsync(postId);
+        if (post == null)
+            return false;
 
-        if (result)
-            await _cache.RemoveAsync(GetPostCacheKey(id));
+        if (!isAdmin && post.AuthorId != userId)
+            throw new UnauthorizedAccessException("u ain't allowed to delete this post");
 
+        var result = await _repository.DeleteAsync(postId);
+        await _cache.RemoveAsync(GetPostCacheKey(postId));
         return result;
     }
 
-    // =========================
-    // Cache helpers
-    // =========================
-
-    private static string GetPostCacheKey(Guid id)
-        => $"Post:{id}";
+    private static string GetPostCacheKey(Guid id) => $"Post:{id}";
 }

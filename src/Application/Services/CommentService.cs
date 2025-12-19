@@ -109,11 +109,10 @@ public class CommentService : ICommentService
 
         return result;
     }
-
-    // =========================
-    // Cache helpers
-    // =========================
-
+    
+    /// <summary>
+    /// Cache helpers
+    /// </summary>
     private static string GetTreeCacheKey(Guid postId)
         => $"CommentTree:{postId}";
 
@@ -126,13 +125,21 @@ public class CommentService : ICommentService
         await _cache.RemoveAsync(GetFlattenCacheKey(postId));
     }
 
-    // =========================
-    // Mapping helpers
-    // =========================
-
+    /// <summary>
+    ///     Map danh sách bình luận thành cây bình luận
+    /// </summary>
     private List<CommentDto> MapToCommentTree(List<Comment> comments)
-        => comments.Select(c => MapCommentRecursive(c, 0)).ToList();
+    {
+        var result = new List<CommentDto>();
 
+        foreach (var comment in comments) result.Add(MapCommentRecursive(comment, 0));
+
+        return result;
+    }
+    
+    /// <summary>
+    ///     Map bình luận và các phản hồi đệ quy
+    /// </summary>
     private CommentDto MapCommentRecursive(Comment comment, int depth)
     {
         var dto = _mapper.Map<CommentDto>(comment);
@@ -148,6 +155,9 @@ public class CommentService : ICommentService
         return dto;
     }
 
+    /// <summary>
+    ///     Chuyển danh sách bình luận thành danh sách phẳng có thông tin depth và path
+    /// </summary>
     private List<CommentFlattenDto> FlattenComments(List<Comment> comments)
     {
         var result = new List<CommentFlattenDto>();
@@ -160,6 +170,9 @@ public class CommentService : ICommentService
         return result;
     }
 
+    /// <summary>
+    ///     Đệ quy flatten bình luận và các phản hồi
+    /// </summary>
     private void FlattenRecursive(
         Comment comment,
         Dictionary<Guid, Comment> allComments,
