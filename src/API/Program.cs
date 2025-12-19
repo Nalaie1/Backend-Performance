@@ -1,23 +1,51 @@
 using Application.Interfaces;
+using Application.Services;
+using Infrastructure;
 using Infrastructure.Data;
-using Infrastructure.Data.SeedData;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
-        "Server=nalaie\\MSSQLSERVER2022;Database=ConsoleApp2Db;Trusted_Connection=True;TrustServerCertificate=True;",
-        sqlOptions => sqlOptions.CommandTimeout(600)));
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sql => sql.CommandTimeout(600)));
 
-// services.AddScoped<ICommentRepository, CommentRepository>();
+// Repositories
+builder.Services.AddScoped<IPostRepository, PostRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
+// Application Services
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 
+// Caching
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+
+// Mapping
+builder.Services.AddAutoMapper(typeof(Application.Mappings.MappingProfile));
+
+// Controllers & Swagger
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Build app
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+// Middleware
+if (app.Environment.IsDevelopment())
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await SeedData.SeedAsync(context);
-}        
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+// app.UseHttpsRedirection();
+app.UseAuthorization();
+
+app.MapControllers();
+app.Run();
