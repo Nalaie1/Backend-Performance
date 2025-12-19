@@ -121,4 +121,45 @@ public class CommentRepository : ICommentRepository
 
         return topLevelComments;
     }
+    
+    // ===================== CREATE =====================
+    public async Task<Comment> CreateAsync(Comment comment)
+    {
+        comment.Id = Guid.NewGuid();
+        // comment.CreatedAt = DateTime.UtcNow;
+        _context.Comments.Add(comment);
+        await _context.SaveChangesAsync();
+        return comment;
+    }
+
+    // ===================== UPDATE =====================
+    public async Task<Comment?> UpdateAsync(Guid commentId, string newContent)
+    {
+        var comment = await _context.Comments.FindAsync(commentId);
+        if (comment == null) return null;
+
+        comment.Content = newContent;
+        // comment.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return comment;
+    }
+
+    // ===================== DELETE =====================
+    public async Task<bool> DeleteAsync(Guid commentId)
+    {
+        var comment = await _context.Comments
+            .Include(c => c.Replies)
+            .FirstOrDefaultAsync(c => c.Id == commentId);
+
+        if (comment == null)
+            return false;
+
+        if (comment.Replies.Any())
+            _context.Comments.RemoveRange(comment.Replies);
+
+        _context.Comments.Remove(comment);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

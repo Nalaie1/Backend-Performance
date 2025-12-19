@@ -12,6 +12,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+    
+    <ItemGroup>
       <Folder Include="Controller\" />
       <Folder Include="Middleware\" />
     </ItemGroup>
@@ -19,6 +23,5 @@
     <ItemGroup>
         <ProjectReference Include="..\Application\Application.csproj" />
         <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
-        <ProjectReference Include="..\Domain\Domain.csproj" />
     </ItemGroup>
 </Project>
