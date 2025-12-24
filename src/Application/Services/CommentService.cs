@@ -181,7 +181,7 @@ public class CommentService : ICommentService
         string path)
     {
         var currentPath = string.IsNullOrEmpty(path)
-            ? "1"
+            ? (result.Count(c => !c.Path.Contains('.')) + 1).ToString()
             : $"{path}.{result.Count(c => c.Path.StartsWith(path)) + 1}";
 
         var dto = _mapper.Map<CommentFlattenDto>(comment);

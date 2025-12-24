@@ -3,7 +3,6 @@ using System.Text;
 using Application.DTOs.User;
 using Domain.Interfaces;
 
-
 namespace Application.Services;
 
 public class AuthService
